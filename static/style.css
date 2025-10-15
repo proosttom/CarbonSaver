@@ -175,6 +175,11 @@ main {
     font-weight: 600;
 }
 
+/* Input Section - Half Width */
+.input-section {
+    max-width: 50%;
+}
+
 /* Form Styles */
 .form-group {
     margin-bottom: 20px;
@@ -534,6 +539,10 @@ main {
         margin-left: 0;
         width: 100%;
         padding: 20px;
+    }
+
+    .input-section {
+        max-width: 100%;
     }
 
     .comparison-grid {
