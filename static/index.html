@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CarbonSaver - Load Profile Optimizer</title>
+    <title>CarbonSaver - Time Shift Carbon Optimizer</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
@@ -38,10 +38,10 @@
     <div class="main-content" id="top">
         <header class="content-header">
             <div class="header-title">
-                <h2>Load Profile Optimizer</h2>
+                <h2>Time Shift Carbon Optimizer</h2>
             </div>
             <div class="header-meta">
-                <span>Belgium Grid • Real-time Data</span>
+                <span>TSO zone: Belgium Grid • Elia Day-ahead Data</span>
             </div>
         </header>
 
@@ -63,7 +63,7 @@
                             <span class="label-text">Duration (hours)</span>
                             <span class="label-hint">How long the load runs</span>
                         </label>
-                        <input type="number" id="durationHours" name="durationHours" value="4" min="1" max="24" required>
+                        <input type="number" id="durationHours" name="durationHours" value="3" min="1" max="24" required>
                     </div>
 
                     <div class="form-group">
@@ -71,7 +71,7 @@
                             <span class="label-text">Standard Start Hour</span>
                             <span class="label-hint">Your usual start time (0-23)</span>
                         </label>
-                        <input type="number" id="standardStartHour" name="standardStartHour" value="7" min="0" max="23" required>
+                        <input type="number" id="standardStartHour" name="standardStartHour" value="6" min="0" max="23" required>
                     </div>
 
                     <button type="submit" class="btn btn-primary" id="optimizeBtn">

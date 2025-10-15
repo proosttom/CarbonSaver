@@ -40,6 +40,12 @@ env/
 # Cache
 .cache/
 
+# AWS Elastic Beanstalk
+.elasticbeanstalk/
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+*.bak
+
 # Flask
 instance/
 .webassets-cache

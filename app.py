@@ -306,9 +306,21 @@ def health_check():
 
 
 if __name__ == "__main__":
+    import os
+
     print("\n🌱 CarbonSaver API Server")
     print("=" * 70)
-    print("Server starting on http://localhost:5001")
+
+    # Determine if running in production (AWS) or development
+    is_production = os.environ.get("AWS_EXECUTION_ENV") is not None
+
+    if is_production:
+        print("Running in PRODUCTION mode (AWS)")
+        print("Server will be managed by WSGI server")
+    else:
+        print("Running in DEVELOPMENT mode")
+        print("Server starting on http://localhost:5001")
+
     print("API Endpoints:")
     print("  GET  /api/forecast - Get carbon intensity forecast")
     print("  POST /api/optimize-forecast - Optimize load schedule")
@@ -317,4 +329,8 @@ if __name__ == "__main__":
     print("\nPress Ctrl+C to stop the server\n")
 
     # Use use_reloader=False to avoid multiprocessing warnings
-    app.run(debug=True, host="0.0.0.0", port=5001, use_reloader=False)
+    # In production, this won't be called (WSGI server handles it)
+    port = int(os.environ.get("PORT", 5001))
+    debug = not is_production
+
+    app.run(debug=debug, host="0.0.0.0", port=port, use_reloader=False)
