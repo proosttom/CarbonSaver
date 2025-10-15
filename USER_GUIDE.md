@@ -9,7 +9,7 @@ CarbonSaver is a web-based tool that helps you optimize your energy consumption 
 ### 1. Start the Application
 
 ```bash
-cd /Users/proost/Coding/CarbonSaver
+cd /Users/username/Coding/CarbonSaver
 python app.py
 ```
 
