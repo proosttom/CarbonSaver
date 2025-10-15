@@ -198,15 +198,4 @@ This is a proof-of-concept demonstration project. For:
 
 Contact the developer or check the project README.
 
-## Next Steps
-
-Ready to integrate CarbonSaver into your operations? Consider:
-1. Testing with your actual load profiles
-2. Tracking savings over time
-3. Automating schedule adjustments
-4. Expanding to multiple loads/locations
-5. Combining with electricity price optimization
-
 ---
-
-**Remember**: Every kWh consumed during high-renewable periods is a step toward a cleaner energy future! 🌱
