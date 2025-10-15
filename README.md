@@ -1,6 +1,6 @@
 # CarbonSaver - Energy Flexibility Market POC
 
-A proof-of-concept project demonstrating developer skills in energy flexibility markets using real data from the Elia Open Data Platform.
+A proof-of-concept project demonstrating energy flexibility market link to carbon intensity. Using real data from the Elia Open Data Platform.
 
 ## Overview
 
