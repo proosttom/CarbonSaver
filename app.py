@@ -19,26 +19,50 @@ CORS(app)  # Enable CORS for all routes
 
 @app.route("/")
 def index():
-    """Serve the main HTML page"""
+    """Serve the main HTML page.
+
+    Returns:
+        Response: The index.html file from the static directory.
+    """
     return send_from_directory("static", "index.html")
 
 
 @app.route("/<path:filename>")
 def serve_static(filename):
-    """Serve static files (CSS, JS, etc.)"""
+    """Serve static files (CSS, JS, images, etc.).
+
+    Args:
+        filename (str): The path to the static file relative to the static directory.
+
+    Returns:
+        Response: The requested static file.
+    """
     return send_from_directory("static", filename)
 
 
 @app.route("/api/forecast", methods=["GET"])
 def get_forecast():
-    """
-    Get carbon intensity forecast.
+    """Get carbon intensity forecast for a specific date.
 
-    Query params:
-        date (optional): Date in YYYY-MM-DD format
+    Fetches hourly carbon intensity forecast data from Elia's open data platform,
+    including load, renewable generation, and calculated carbon intensity values.
+
+    Query Parameters:
+        date (str, optional): Date in YYYY-MM-DD format. If not provided, uses the most
+                             recent date with available data.
 
     Returns:
-        JSON with hourly carbon intensity forecast
+        Response: JSON object containing:
+            - success (bool): Whether the request succeeded
+            - summary (dict): Summary statistics including min/max/avg carbon intensity,
+                            date, and total hours
+            - hourly_data (list): List of hourly forecast records with datetime, load,
+                                 renewables, and carbon intensity values
+
+        Status Codes:
+            200: Success
+            400: Invalid date format
+            500: Could not fetch forecast data
     """
     try:
         # Get optional date parameter
@@ -101,19 +125,33 @@ def get_forecast():
 
 @app.route("/api/optimize-forecast", methods=["POST"])
 def optimize_forecast():
-    """
-    Optimize load schedule based on carbon intensity forecast.
+    """Optimize load schedule based on carbon intensity forecast.
 
-    Request body:
-        {
-            "power_kw": 250,          // Load in kW
-            "duration_hours": 4,       // Duration in hours
-            "standard_start_hour": 7,  // Standard start hour (optional)
-            "date": "2025-10-13"      // Date (optional)
-        }
+    This endpoint analyzes the carbon intensity forecast and finds the optimal time
+    slot to run a load that minimizes carbon emissions. It compares the standard
+    schedule against the optimal schedule and calculates potential savings.
+
+    Request Body (JSON):
+        power_kw (float): Load power in kW (required)
+        duration_hours (int): Duration of the load in hours (required)
+        standard_start_hour (int, optional): Typical start hour (0-23). Defaults to 6.
+        date (str, optional): Date in YYYY-MM-DD format. If not provided, uses most
+                             recent available data.
 
     Returns:
-        JSON with optimal schedule, savings, and forecast data
+        Response: JSON object containing:
+            - success (bool): Whether the optimization succeeded
+            - date (str): The forecast date used
+            - standard_profile (dict): Emissions data for the standard schedule
+            - optimal_profile (dict): Emissions data for the optimal schedule
+            - savings (dict): Emissions savings, percentage reduction, time shift,
+                            and equivalent metrics (e.g., km of driving avoided)
+            - hourly_data (list): Hour-by-hour forecast with windows marked
+
+        Status Codes:
+            200: Success
+            400: Invalid request data or parameters
+            500: Could not fetch forecast data or calculate optimization
     """
     try:
         # Get request data
@@ -134,7 +172,7 @@ def optimize_forecast():
         duration_hours = int(duration_hours)
 
         # Optional parameters
-        standard_start_hour = data.get("standard_start_hour", 7)  # Default to 7am
+        standard_start_hour = data.get("standard_start_hour", 6)  # Default to 6am
         date_str = data.get("date")
         use_date = None
 
@@ -251,7 +289,19 @@ def optimize_forecast():
 
 @app.route("/api/health", methods=["GET"])
 def health_check():
-    """Health check endpoint"""
+    """Health check endpoint for API monitoring.
+
+    Simple endpoint to verify that the API server is running and responsive.
+    Useful for load balancers, monitoring systems, and debugging.
+
+    Returns:
+        Response: JSON object containing:
+            - status (str): Always "healthy" if server is running
+            - timestamp (str): ISO 8601 formatted timestamp of the request
+
+        Status Code:
+            200: Server is healthy and responsive
+    """
     return jsonify({"status": "healthy", "timestamp": datetime.now().isoformat()})
 
 
@@ -266,4 +316,5 @@ if __name__ == "__main__":
     print("=" * 70)
     print("\nPress Ctrl+C to stop the server\n")
 
-    app.run(debug=True, host="0.0.0.0", port=5001)
+    # Use use_reloader=False to avoid multiprocessing warnings
+    app.run(debug=True, host="0.0.0.0", port=5001, use_reloader=False)

@@ -19,11 +19,6 @@
     box-sizing: border-box;
 }
 
-html {
-    scroll-behavior: smooth;
-    scroll-padding-top: 20px;
-}
-
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background: #f5f7fa;
@@ -150,21 +145,16 @@ main {
 .card {
     background: white;
     border-radius: 12px;
-    padding: 28px;
+    padding: 25px;
     margin-bottom: 25px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: var(--shadow);
     border: 1px solid var(--border-color);
-    transition: box-shadow 0.2s ease;
-}
-
-.card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .card h2 {
     color: var(--text-primary);
-    margin-bottom: 24px;
-    font-size: 1.4rem;
+    margin-bottom: 20px;
+    font-size: 1.3rem;
     font-weight: 600;
 }
 
@@ -260,15 +250,14 @@ main {
 
 /* Date Info */
 .date-info {
-    background: linear-gradient(135deg, var(--dark-bg) 0%, #2c3544 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     padding: 15px 20px;
     border-radius: 8px;
     text-align: center;
-    font-size: 1.05rem;
-    font-weight: 500;
+    font-size: 1.1rem;
+    font-weight: 600;
     margin-bottom: 25px;
-    border: 1px solid rgba(23, 162, 184, 0.3);
 }
 
 /* Comparison Grid */
@@ -282,37 +271,34 @@ main {
 .profile-card {
     border-radius: 12px;
     overflow: hidden;
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--border-color);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    background: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .profile-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
 .standard-card {
-    border-top: 3px solid #e74c3c;
+    border-color: var(--warning-color);
 }
 
 .optimal-card {
-    border-top: 3px solid var(--accent-teal);
+    border-color: var(--primary-green);
 }
 
 .profile-header {
-    padding: 18px 20px;
+    padding: 15px 20px;
     color: white;
-    font-weight: 500;
 }
 
 .standard-card .profile-header {
-    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
 }
 
 .optimal-card .profile-header {
-    background: linear-gradient(135deg, var(--accent-teal) 0%, #138496 100%);
+    background: linear-gradient(135deg, var(--primary-green), #27ae60);
 }
 
 .profile-header h3 {
@@ -341,13 +327,12 @@ main {
     background: #f8f9fa;
     padding: 15px;
     margin: 10px -20px -20px -20px;
-    border-top: 2px solid #e8e8e8;
+    border-top: 2px solid var(--border-color);
 }
 
 .stat-label {
     color: var(--text-secondary);
     font-size: 0.9rem;
-    font-weight: 400;
 }
 
 .stat-value {
@@ -358,25 +343,20 @@ main {
 
 .profile-stat.highlight .stat-value {
     font-size: 1.5rem;
-    font-weight: 700;
-}
-
-.optimal-card .profile-stat.highlight .stat-value {
-    color: var(--accent-teal);
+    color: var(--primary-green);
 }
 
 .standard-card .profile-stat.highlight .stat-value {
-    color: #e74c3c;
+    color: var(--warning-color);
 }
 
 /* Savings Banner */
 .savings-banner {
-    background: linear-gradient(135deg, var(--primary-green) 0%, #27ae60 100%);
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
     color: white;
-    padding: 30px;
+    padding: 25px;
     border-radius: 12px;
     margin-bottom: 30px;
-    box-shadow: 0 4px 12px rgba(46, 204, 113, 0.2);
 }
 
 .savings-main {
@@ -408,12 +388,10 @@ main {
 }
 
 .savings-detail {
-    background: rgba(255, 255, 255, 0.15);
-    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 12px;
     border-radius: 8px;
     text-align: center;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
 }
 
 .detail-label {
@@ -432,29 +410,20 @@ main {
 .recommendation {
     background: rgba(255, 255, 255, 0.95);
     color: var(--text-primary);
-    padding: 16px 20px;
+    padding: 15px;
     border-radius: 8px;
     text-align: center;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    font-size: 1rem;
+    line-height: 1.5;
 }
 
 /* Chart Container */
 .chart-container {
     margin-top: 30px;
-    background: white;
-    padding: 25px;
-    border-radius: 12px;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .chart-container h3 {
     margin-bottom: 20px;
-    color: var(--text-primary);
-    font-size: 1.2rem;
-    font-weight: 600;
 }
 
 #carbonChart {
@@ -465,9 +434,7 @@ main {
     display: flex;
     justify-content: center;
     gap: 25px;
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px solid var(--border-color);
+    margin-top: 15px;
     flex-wrap: wrap;
 }
 
@@ -476,29 +443,22 @@ main {
     align-items: center;
     gap: 8px;
     font-size: 0.9rem;
-    color: var(--text-secondary);
 }
 
 .legend-color {
     width: 20px;
     height: 20px;
     border-radius: 4px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 /* Error Section */
 .error-section {
-    background: #fff5f5 !important;
-    border: 1px solid #fc8181 !important;
-    border-left: 4px solid #e74c3c !important;
+    background: #ffebee !important;
+    border-left: 4px solid var(--warning-color) !important;
 }
 
 .error-section h2 {
-    color: #e74c3c !important;
-}
-
-.error-section p {
-    color: #c53030;
+    color: var(--warning-color) !important;
 }
 
 /* Animations */

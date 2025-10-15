@@ -8,15 +8,46 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <header>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
             <h1>🌱 CarbonSaver</h1>
-            <p class="subtitle">Optimize your load schedule to minimize carbon emissions</p>
+            <p class="tagline">Energy Optimizer</p>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#top" class="nav-item active" id="navDashboard">
+                <span>📊</span> Dashboard
+            </a>
+            <a href="#optimize" class="nav-item" id="navOptimize">
+                <span>⚙️</span> Optimize
+            </a>
+            <a href="#results" class="nav-item" id="navAnalytics">
+                <span>📈</span> Analytics
+            </a>
+            <a href="https://github.com/proosttom/CarbonSaver" target="_blank" class="nav-item" id="navAbout">
+                <span>ℹ️</span> Source & Info
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <p>Powered by <a href="https://opendata.elia.be/" target="_blank">Elia Data</a></p>
+            <p class="copyright">© 2025 CarbonSaver</p>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content" id="top">
+        <header class="content-header">
+            <div class="header-title">
+                <h2>Load Profile Optimizer</h2>
+            </div>
+            <div class="header-meta">
+                <span>Belgium Grid • Real-time Data</span>
+            </div>
         </header>
 
         <main>
             <!-- Input Section -->
-            <section class="card input-section">
+            <section class="card input-section" id="optimize">
                 <h2>Load Profile Configuration</h2>
                 <form id="optimizeForm">
                     <div class="form-group">
@@ -51,7 +82,7 @@
             </section>
 
             <!-- Results Section -->
-            <section class="card results-section" id="resultsSection" style="display: none;">
+            <section class="card results-section" id="results" style="display: none;">
                 <h2>Optimization Results</h2>
                 
                 <!-- Date Info -->
@@ -171,11 +202,6 @@
                 <p id="errorMessage"></p>
             </section>
         </main>
-
-        <footer>
-            <p>Powered by <a href="https://opendata.elia.be/" target="_blank">Elia Open Data</a></p>
-            <p>© 2025 CarbonSaver POC - Energy Flexibility Market Demonstration</p>
-        </footer>
     </div>
 
     <script src="script.js"></script>

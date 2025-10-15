@@ -4,17 +4,31 @@ from elia_forecast import build_carbon_intensity_forecast_from_elia
 
 
 def calculate_load_emissions(carbon_forecast, start_hour, duration_hours, load_mw):
-    """
-    Calculate total emissions for a load profile starting at a specific hour.
+    """Calculate total emissions for a load profile starting at a specific hour.
+
+    This function calculates the total carbon emissions for a given load profile
+    by multiplying the energy consumption with the average carbon intensity during
+    the specified time window.
 
     Args:
-        carbon_forecast: DataFrame with carbon intensity (g/kWh) indexed by datetime
-        start_hour: Hour of day to start (0-23)
-        duration_hours: Duration of the load in hours
-        load_mw: Load in MW (constant for simplicity)
+        carbon_forecast (pd.DataFrame): DataFrame with carbon intensity (g/kWh) indexed
+                                       by datetime, must contain 'carbon_intensity_g_per_kWh' column.
+        start_hour (int): Hour of day to start the load (0-23).
+        duration_hours (int): Duration of the load in hours.
+        load_mw (float): Constant load in MW throughout the duration.
 
     Returns:
-        dict with total emissions, average carbon intensity, and time window
+        dict: Dictionary containing:
+            - start_time (datetime): Start datetime of the load window
+            - end_time (datetime): End datetime of the load window
+            - start_hour (int): Hour of day the load starts
+            - duration_hours (int): Duration in hours
+            - load_mw (float): Load in MW
+            - energy_kwh (float): Total energy consumed in kWh
+            - avg_carbon_intensity_g_per_kwh (float): Average carbon intensity in g/kWh
+            - total_emissions_kg (float): Total emissions in kg CO₂
+            - window_data (pd.DataFrame): Carbon forecast data for the time window
+        Returns None if no valid time slot can be found for the given start hour.
     """
     # Filter forecast to only include times matching the start hour
     forecast_df = carbon_forecast.copy()
@@ -58,16 +72,25 @@ def calculate_load_emissions(carbon_forecast, start_hour, duration_hours, load_m
 
 
 def find_optimal_timeslot(carbon_forecast, duration_hours, load_mw):
-    """
-    Find the optimal time slot with minimum carbon emissions.
+    """Find the optimal time slot with minimum carbon emissions.
+
+    This function evaluates all possible time slots within the forecast period
+    and identifies the one that would result in the lowest carbon emissions for
+    the specified load profile.
 
     Args:
-        carbon_forecast: DataFrame with carbon intensity indexed by datetime
-        duration_hours: Duration of the load in hours
-        load_mw: Load in MW
+        carbon_forecast (pd.DataFrame): DataFrame with carbon intensity indexed by datetime,
+                                       must contain 'carbon_intensity_g_per_kWh' column.
+        duration_hours (int): Duration of the load in hours.
+        load_mw (float): Constant load in MW.
 
     Returns:
-        dict with optimal start time and emissions data
+        tuple: A tuple containing:
+            - best_slot (dict): Dictionary with the same structure as returned by
+                               calculate_load_emissions() for the optimal time slot.
+            - all_slots (list): List of dictionaries containing emissions data for all
+                               evaluated time slots, sorted by evaluation order.
+        Returns (None, []) if no valid time slots are found.
     """
     best_slot = None
     best_emissions = float("inf")
@@ -116,17 +139,30 @@ def find_optimal_timeslot(carbon_forecast, duration_hours, load_mw):
 def compare_load_profiles(
     standard_start_hour, duration_hours, load_mw, forecast_date=None
 ):
-    """
-    Compare a standard load profile with the optimal load profile.
+    """Compare a standard load profile with the optimal load profile.
+
+    This function performs a complete analysis comparing a user's standard load
+    schedule against the optimal schedule that minimizes carbon emissions. It fetches
+    carbon intensity forecasts, calculates emissions for both profiles, and provides
+    detailed comparison results including potential savings.
 
     Args:
-        standard_start_hour: Standard start hour (e.g., 7 for 7am)
-        duration_hours: Duration of the load in hours
-        load_mw: Load in MW
-        forecast_date: Optional specific date to use
+        standard_start_hour (int): The typical start hour for the load (0-23), e.g., 7 for 7am.
+        duration_hours (int): Duration of the load in hours.
+        load_mw (float): Constant load in MW.
+        forecast_date (date, optional): Specific date to analyze. If None, uses the most
+                                       recent date with available forecast data. Defaults to None.
 
     Returns:
-        dict with comparison results
+        dict: Dictionary containing:
+            - standard (dict): Emissions data for the standard profile
+            - optimal (dict): Emissions data for the optimal profile
+            - emissions_saved_kg (float): Emissions reduction in kg CO₂
+            - emissions_saved_pct (float): Percentage reduction in emissions
+            - time_shift_hours (float): Hours difference between optimal and standard start times
+            - all_slots (list): All evaluated time slots with their emissions data
+            - carbon_forecast (pd.DataFrame): The carbon intensity forecast used
+        Returns None if carbon forecast data cannot be fetched or profiles cannot be calculated.
     """
     print("=" * 70)
     print("LOAD PROFILE OPTIMIZER - Carbon Emission Comparison")

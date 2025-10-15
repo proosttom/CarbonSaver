@@ -68,7 +68,7 @@ function setLoading(loading) {
     btn.disabled = loading;
     
     if (loading) {
-        btnText.textContent = 'Optimizing...';
+        btnText.textContent = 'Accessing day-ahead & optimizing...';
         spinner.style.display = 'inline-block';
     } else {
         btnText.textContent = 'Get Forecast & Optimize';
@@ -78,7 +78,7 @@ function setLoading(loading) {
 
 function displayResults(data) {
     // Show results section
-    document.getElementById('resultsSection').style.display = 'block';
+    document.getElementById('results').style.display = 'block';
     
     // Update date info
     document.getElementById('dateInfo').textContent = `Forecast Date: ${data.date}`;
@@ -124,7 +124,7 @@ function displayResults(data) {
     updateChart(data.hourly_data);
     
     // Scroll to results
-    document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function updateChart(hourlyData) {
@@ -243,8 +243,69 @@ function hideError() {
 }
 
 function hideResults() {
-    document.getElementById('resultsSection').style.display = 'none';
+    document.getElementById('results').style.display = 'none';
 }
+
+// Navigation handling
+document.addEventListener('DOMContentLoaded', () => {
+    // Smooth scroll for navigation links
+    const navItems = document.querySelectorAll('.nav-item:not([target="_blank"])');
+    
+    navItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            const href = item.getAttribute('href');
+            
+            // Only handle internal links
+            if (href.startsWith('#')) {
+                e.preventDefault();
+                
+                // Update active state
+                navItems.forEach(nav => nav.classList.remove('active'));
+                item.classList.add('active');
+                
+                // Scroll to section
+                if (href === '#top') {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
+            }
+        });
+    });
+    
+    // Update active nav on scroll
+    const observerOptions = {
+        root: null,
+        rootMargin: '-20% 0px -70% 0px',
+        threshold: 0
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const id = entry.target.id;
+                navItems.forEach(nav => {
+                    const href = nav.getAttribute('href');
+                    if (href === `#${id}` || (id === 'top' && href === '#top')) {
+                        navItems.forEach(n => n.classList.remove('active'));
+                        nav.classList.add('active');
+                    }
+                });
+            }
+        });
+    }, observerOptions);
+    
+    // Observe sections
+    observer.observe(document.getElementById('top'));
+    observer.observe(document.getElementById('optimize'));
+    const resultsSection = document.getElementById('results');
+    if (resultsSection) {
+        observer.observe(resultsSection);
+    }
+});
 
 // Health check on page load
 window.addEventListener('DOMContentLoaded', async () => {

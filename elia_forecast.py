@@ -15,8 +15,20 @@ EMISSION_FACTORS = {
 
 # --- Helper Function to Fetch Data from Elia ---
 def fetch_elia_data(dataset, start_date, end_date):
-    """
-    Fetches data from the Elia Open Data API for a given dataset and time range.
+    """Fetches data from the Elia Open Data API for a given dataset and time range.
+
+    This function retrieves day-ahead forecast data from Elia's open data platform
+    with pagination support to handle large datasets.
+
+    Args:
+        dataset (str): The Elia dataset code (e.g., 'ods001' for load, 'ods032' for wind,
+                      'ods087' for solar).
+        start_date (date): The start date for data retrieval (inclusive).
+        end_date (date): The end date for data retrieval (exclusive).
+
+    Returns:
+        pd.DataFrame: A DataFrame containing all records from the API with columns based on
+                     the dataset structure, or None if the fetch fails.
     """
     url = (
         f"https://opendata.elia.be/api/explore/v2.1/catalog/datasets/{dataset}/records"
@@ -53,12 +65,32 @@ def fetch_elia_data(dataset, start_date, end_date):
 
 # --- Main Logic Function ---
 def build_carbon_intensity_forecast_from_elia(use_date=None):
-    """
-    Builds a day-ahead carbon intensity forecast using Elia's open data.
+    """Builds a day-ahead carbon intensity forecast using Elia's open data.
+
+    This function retrieves load, wind, and solar forecast data from Elia's API,
+    processes it to calculate hourly carbon intensity values based on the energy mix,
+    and returns a complete forecast DataFrame.
+
+    The carbon intensity is calculated using emission factors for different energy sources:
+    - Solar: 15 gCO₂/kWh
+    - Wind: 11.5 gCO₂/kWh
+    - Thermal/Nuclear: ~199 gCO₂/kWh (weighted average of 60% nuclear, 40% gas)
 
     Args:
-        use_date: Optional date to use for the forecast. If None, will try to find
-                 the most recent date with available data (for POC purposes).
+        use_date (date, optional): The specific date to build the forecast for.
+                                  If None, the function will search backwards from yesterday
+                                  to find the most recent date with complete data available.
+                                  Defaults to None.
+
+    Returns:
+        pd.DataFrame: A DataFrame indexed by datetime with the following columns:
+                     - total_load_mw: Total electricity load in MW
+                     - wind_mw: Wind generation in MW
+                     - solar_mw: Solar generation in MW
+                     - thermal_and_nuclear_mw: Thermal and nuclear generation in MW
+                     - total_emissions_gCO2eq_per_h: Total emissions in gCO₂ per hour
+                     - carbon_intensity_g_per_kWh: Carbon intensity in gCO₂/kWh
+                     Returns None if data cannot be fetched or processed.
     """
     # 1. Define the time window
     if use_date:
