@@ -53,7 +53,7 @@ python app.py
 Then open your browser to: **http://localhost:5001**
 
 The web interface provides:
-- Interactive form for load profile configuration
+- Interactive form for Default Load Profile
 - Real-time carbon intensity forecasting
 - Visual comparison of standard vs optimal schedules
 - Interactive charts with Chart.js

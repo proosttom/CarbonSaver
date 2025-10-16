@@ -6,15 +6,77 @@ Provides endpoints for carbon intensity forecasting and load optimization
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from datetime import datetime, date
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
+
 from elia_forecast import build_carbon_intensity_forecast_from_elia
+from entsoe_data import fetch_realtime_production as fetch_entsoe_production
 from load_optimizer import (
     compare_load_profiles,
     find_optimal_timeslot,
     calculate_load_emissions,
 )
+import threading
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 CORS(app)  # Enable CORS for all routes
+
+# Simple in-memory cache for prefetched data
+_forecast_cache = {"data": None, "timestamp": None, "lock": threading.Lock()}
+
+
+def prefetch_forecast_data():
+    """Prefetch forecast data in the background to reduce wait time."""
+    print("🔄 Prefetching forecast data in background...")
+    try:
+        forecast_df = build_carbon_intensity_forecast_from_elia()
+        if forecast_df is not None:
+            with _forecast_cache["lock"]:
+                _forecast_cache["data"] = forecast_df
+                _forecast_cache["timestamp"] = datetime.now()
+            print("✅ Forecast data prefetched successfully!")
+        else:
+            print("⚠️ Could not prefetch forecast data")
+    except Exception as e:
+        print(f"⚠️ Error prefetching forecast data: {e}")
+
+
+# Start prefetch on app initialization (works for both dev and production)
+print("🚀 Initializing background data prefetch...")
+_prefetch_thread = threading.Thread(target=prefetch_forecast_data, daemon=True)
+_prefetch_thread.start()
+
+
+def get_cached_forecast(use_date=None):
+    """Get forecast from cache if available, otherwise fetch fresh data.
+
+    Args:
+        use_date: Specific date to fetch (if None, uses cached data if available)
+
+    Returns:
+        DataFrame with forecast data or None
+    """
+    # If a specific date is requested, always fetch fresh
+    if use_date is not None:
+        return build_carbon_intensity_forecast_from_elia(use_date=use_date)
+
+    # Try to use cached data
+    with _forecast_cache["lock"]:
+        cached_data = _forecast_cache["data"]
+        cache_time = _forecast_cache["timestamp"]
+
+    if cached_data is not None:
+        print(
+            f"✅ Using cached forecast data (cached at {cache_time.strftime('%H:%M:%S')})"
+        )
+        return cached_data
+
+    # No cache available, fetch fresh
+    print("⚠️ No cached data, fetching fresh...")
+    return build_carbon_intensity_forecast_from_elia()
 
 
 @app.route("/")
@@ -75,8 +137,8 @@ def get_forecast():
             except ValueError:
                 return jsonify({"error": "Invalid date format. Use YYYY-MM-DD"}), 400
 
-        # Get forecast
-        forecast_df = build_carbon_intensity_forecast_from_elia(use_date=use_date)
+        # Get forecast (uses cache when possible)
+        forecast_df = get_cached_forecast(use_date=use_date)
 
         if forecast_df is None:
             return jsonify({"error": "Could not fetch forecast data"}), 500
@@ -121,6 +183,15 @@ def get_forecast():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/current-production", methods=["GET"])
+def get_current_production():
+    """Get current electricity production data.
+
+    Returns:
+        Response: JSON object containing current production data.
+    """
 
 
 @app.route("/api/optimize-forecast", methods=["POST"])
@@ -182,11 +253,21 @@ def optimize_forecast():
             except ValueError:
                 return jsonify({"error": "Invalid date format. Use YYYY-MM-DD"}), 400
 
-        # Get carbon intensity forecast
-        forecast_df = build_carbon_intensity_forecast_from_elia(use_date=use_date)
+        # Get carbon intensity forecast (uses cache when possible)
+        forecast_df = get_cached_forecast(use_date=use_date)
 
         if forecast_df is None:
             return jsonify({"error": "Could not fetch forecast data"}), 500
+
+        # Get cache timestamp for display
+        with _forecast_cache["lock"]:
+            cache_timestamp = _forecast_cache["timestamp"]
+
+        data_fetch_time = (
+            cache_timestamp.isoformat()
+            if cache_timestamp
+            else datetime.now().isoformat()
+        )
 
         # Calculate standard profile emissions
         standard_result = calculate_load_emissions(
@@ -244,6 +325,7 @@ def optimize_forecast():
         response = {
             "success": True,
             "date": forecast_df.index[0].strftime("%Y-%m-%d"),
+            "data_fetch_time": data_fetch_time,
             "standard_profile": {
                 "start_time": standard_result["start_time"].strftime("%H:%M"),
                 "end_time": standard_result["end_time"].strftime("%H:%M"),
@@ -279,6 +361,49 @@ def optimize_forecast():
         }
 
         return jsonify(response)
+
+    except Exception as e:
+        import traceback
+
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/realtime-production", methods=["GET"])
+def realtime_production():
+    """Get real-time power generation data by fuel type from ENTSO-E.
+
+    Fetches the most recent power generation data from the ENTSO-E Transparency Platform,
+    broken down by fuel type (Wind, Solar, Nuclear, Gas, etc.) for Belgium.
+
+    Returns:
+        Response: JSON object containing:
+            - success (bool): Whether the request succeeded
+            - timestamp (str): ISO 8601 timestamp of the data
+            - production (dict): Power generation by fuel type in MW
+            - total_mw (float): Total power generation in MW
+            - carbon_intensity_g_per_kwh (float): Current carbon intensity
+            - source (str): Data source ('entsoe')
+
+        Status Codes:
+            200: Success
+            500: Could not fetch real-time data (check ENTSOE_API_TOKEN)
+    """
+    try:
+        production_data = fetch_entsoe_production()
+
+        if production_data is None:
+            return (
+                jsonify(
+                    {
+                        "error": "Could not fetch real-time production data. Please check ENTSOE_API_TOKEN is set.",
+                        "help": "Get your token at https://transparency.entsoe.eu/",
+                    }
+                ),
+                500,
+            )
+
+        return jsonify({"success": True, "source": "entsoe", **production_data})
 
     except Exception as e:
         import traceback
@@ -324,6 +449,7 @@ if __name__ == "__main__":
     print("API Endpoints:")
     print("  GET  /api/forecast - Get carbon intensity forecast")
     print("  POST /api/optimize-forecast - Optimize load schedule")
+    print("  GET  /api/realtime-production - Get real-time generation by fuel type")
     print("  GET  /api/health - Health check")
     print("=" * 70)
     print("\nPress Ctrl+C to stop the server\n")

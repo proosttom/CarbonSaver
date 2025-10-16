@@ -5,6 +5,86 @@ let carbonChart = null;
 // API Base URL
 const API_BASE = window.location.origin;
 
+// Fetch and display real-time production data
+async function fetchRealtimeProduction() {
+    try {
+        const response = await fetch(`${API_BASE}/api/realtime-production`);
+        
+        const data = await response.json();
+        
+        if (!response.ok || !data.success) {
+            console.error('Failed to fetch real-time production data:', data.error);
+            document.getElementById('realtimeTimestamp').textContent = 
+                'API token required. See ENTSOE_SETUP.md';
+            // Set all values to placeholder
+            ['windProduction', 'solarProduction', 'nuclearProduction', 'gasProduction', 
+             'hydroProduction', 'biomassProduction', 'wasteProduction', 'otherProduction',
+             'totalProduction', 'carbonIntensityNow'].forEach(id => {
+                document.getElementById(id).textContent = '-- MW';
+            });
+            return;
+        }
+        
+        if (data.success) {
+            // Update timestamp - convert to local time
+            const timestamp = new Date(data.timestamp);
+            const localTime = timestamp.toLocaleString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+            document.getElementById('realtimeTimestamp').textContent = localTime;
+            
+            // Update source
+            const source = data.source ? data.source.toUpperCase() : 'ENTSO-E';
+            document.getElementById('realtimeSource').textContent = `Data Source: ${source}`;
+            
+            // Update production values - extract data properly
+            const production = data.production;
+            
+            // Calculate wind total (onshore + offshore)
+            const windTotal = (production['Wind Onshore'] || 0) + (production['Wind Offshore'] || 0);
+            
+            // Calculate hydro total (pumped + run-of-river + reservoir)
+            const hydroTotal = (production['Hydro Pumped Storage'] || 0) + 
+                              (production['Hydro Run-of-river and poundage'] || 0) + 
+                              (production['Hydro Water Reservoir'] || 0);
+            
+            document.getElementById('windProduction').textContent = 
+                `${windTotal.toFixed(0)} MW`;
+            document.getElementById('solarProduction').textContent = 
+                `${(production['Solar'] || 0).toFixed(0)} MW`;
+            document.getElementById('nuclearProduction').textContent = 
+                `${(production['Nuclear'] || 0).toFixed(0)} MW`;
+            document.getElementById('gasProduction').textContent = 
+                `${(production['Fossil Gas'] || 0).toFixed(0)} MW`;
+            document.getElementById('hydroProduction').textContent = 
+                `${hydroTotal.toFixed(0)} MW`;
+            document.getElementById('biomassProduction').textContent = 
+                `${(production['Biomass'] || 0).toFixed(0)} MW`;
+            document.getElementById('wasteProduction').textContent = 
+                `${(production['Waste'] || 0).toFixed(0)} MW`;
+            document.getElementById('otherProduction').textContent = 
+                `${(production['Other'] || 0).toFixed(0)} MW`;
+            document.getElementById('totalProduction').textContent = 
+                `${data.total_mw.toFixed(0)} MW`;
+            document.getElementById('carbonIntensityNow').textContent = 
+                `${data.carbon_intensity_g_per_kwh.toFixed(0)} g/kWh`;
+        }
+    } catch (error) {
+        console.error('Error fetching real-time production:', error);
+        document.getElementById('realtimeTimestamp').textContent = 
+            'Connection error. Check console for details.';
+    }
+}
+
+// Fetch real-time data on page load and refresh every 5 minutes
+fetchRealtimeProduction();
+setInterval(fetchRealtimeProduction, 5 * 60 * 1000); // 5 minutes
+
 // Form submission handler
 document.getElementById('optimizeForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -82,6 +162,20 @@ function displayResults(data) {
     
     // Update date info
     document.getElementById('dateInfo').textContent = `Forecast Date: ${data.date}`;
+    
+    // Update forecast timestamp in Default Load Profile header
+    // Show the forecast date instead of fetch time
+    if (data.date) {
+        const forecastDate = new Date(data.date + 'T00:00:00');
+        const formattedDate = forecastDate.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+        document.getElementById('forecastTimestamp').textContent = `Forecast: ${formattedDate}`;
+    } else {
+        document.getElementById('forecastTimestamp').textContent = '--';
+    }
     
     // Update standard profile
     document.getElementById('standardStartTime').textContent = data.standard_profile.start_time;

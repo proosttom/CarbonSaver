@@ -46,40 +46,132 @@
         </header>
 
         <main>
-            <!-- Input Section -->
-            <section class="card input-section" id="optimize">
-                <h2>Load Profile Configuration</h2>
-                <form id="optimizeForm">
-                    <div class="form-group">
-                        <label for="powerKw">
-                            <span class="label-text">Power (kW)</span>
-                            <span class="label-hint">Total power consumption</span>
-                        </label>
-                        <input type="number" id="powerKw" name="powerKw" value="250" min="1" required>
+            <!-- Top Row: Default Load Profile + Live Grid Production -->
+            <div class="top-row-grid">
+                <!-- Input Section -->
+                <section class="card input-section" id="optimize">
+                    <div class="realtime-header">
+                        <h3>⚙️ Default Load Profile</h3>
+                        <div class="realtime-meta">
+                            <div class="realtime-timestamp" id="forecastTimestamp">--</div>
+                            <div class="realtime-source" id="forecastSource">Source: Elia</div>
+                        </div>
                     </div>
+                    <form id="optimizeForm">
+                        <div class="form-group">
+                            <label for="powerKw">
+                                <span class="label-text">Power (kW)</span>
+                                <span class="label-hint">Total power consumption</span>
+                            </label>
+                            <input type="number" id="powerKw" name="powerKw" value="250" min="1" required>
+                        </div>
 
-                    <div class="form-group">
-                        <label for="durationHours">
-                            <span class="label-text">Duration (hours)</span>
-                            <span class="label-hint">How long the load runs</span>
-                        </label>
-                        <input type="number" id="durationHours" name="durationHours" value="3" min="1" max="24" required>
+                        <div class="form-group">
+                            <label for="durationHours">
+                                <span class="label-text">Duration (hours)</span>
+                                <span class="label-hint">How long the load runs</span>
+                            </label>
+                            <input type="number" id="durationHours" name="durationHours" value="3" min="1" max="24" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="standardStartHour">
+                                <span class="label-text">Standard Start Hour</span>
+                                <span class="label-hint">Your usual start time (0-23)</span>
+                            </label>
+                            <input type="number" id="standardStartHour" name="standardStartHour" value="6" min="0" max="23" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" id="optimizeBtn">
+                            <span class="btn-text">Get Forecast & Optimize</span>
+                            <span class="spinner" style="display: none;">⏳</span>
+                        </button>
+                    </form>
+                </section>
+
+                <!-- Real-time Production Dashboard - Compact Version -->
+                <section class="card realtime-section-compact" id="realtimeProduction">
+                    <div class="realtime-header">
+                        <h3>🔌 Live Grid Production</h3>
+                        <div class="realtime-meta">
+                            <div class="realtime-timestamp" id="realtimeTimestamp">Loading...</div>
+                            <div class="realtime-source" id="realtimeSource">Source: ENTSO-E</div>
+                        </div>
                     </div>
-
-                    <div class="form-group">
-                        <label for="standardStartHour">
-                            <span class="label-text">Standard Start Hour</span>
-                            <span class="label-hint">Your usual start time (0-23)</span>
-                        </label>
-                        <input type="number" id="standardStartHour" name="standardStartHour" value="6" min="0" max="23" required>
+                    <div class="production-grid-compact">
+                        <div class="production-item">
+                            <span class="production-icon-sm">🌬️</span>
+                            <div class="production-info">
+                                <span class="production-label-sm">Wind</span>
+                                <span class="production-value-sm" id="windProduction">--</span>
+                            </div>
+                        </div>
+                        <div class="production-item">
+                            <span class="production-icon-sm">☀️</span>
+                            <div class="production-info">
+                                <span class="production-label-sm">Solar</span>
+                                <span class="production-value-sm" id="solarProduction">--</span>
+                            </div>
+                        </div>
+                        <div class="production-item">
+                            <span class="production-icon-sm">⚛️</span>
+                            <div class="production-info">
+                                <span class="production-label-sm">Nuclear</span>
+                                <span class="production-value-sm" id="nuclearProduction">--</span>
+                            </div>
+                        </div>
+                        <div class="production-item">
+                            <span class="production-icon-sm">🔥</span>
+                            <div class="production-info">
+                                <span class="production-label-sm">Gas</span>
+                                <span class="production-value-sm" id="gasProduction">--</span>
+                            </div>
+                        </div>
+                        <div class="production-item">
+                            <span class="production-icon-sm">💧</span>
+                            <div class="production-info">
+                                <span class="production-label-sm">Hydro</span>
+                                <span class="production-value-sm" id="hydroProduction">--</span>
+                            </div>
+                        </div>
+                        <div class="production-item">
+                            <span class="production-icon-sm">🌿</span>
+                            <div class="production-info">
+                                <span class="production-label-sm">Biomass</span>
+                                <span class="production-value-sm" id="biomassProduction">--</span>
+                            </div>
+                        </div>
+                        <div class="production-item">
+                            <span class="production-icon-sm">🗑️</span>
+                            <div class="production-info">
+                                <span class="production-label-sm">Waste</span>
+                                <span class="production-value-sm" id="wasteProduction">--</span>
+                            </div>
+                        </div>
+                        <div class="production-item">
+                            <span class="production-icon-sm">📦</span>
+                            <div class="production-info">
+                                <span class="production-label-sm">Other</span>
+                                <span class="production-value-sm" id="otherProduction">--</span>
+                            </div>
+                        </div>
+                        <div class="production-item highlight">
+                            <span class="production-icon-sm">⚡</span>
+                            <div class="production-info">
+                                <span class="production-label-sm">Total</span>
+                                <span class="production-value-sm total" id="totalProduction">--</span>
+                            </div>
+                        </div>
+                        <div class="production-item highlight">
+                            <span class="production-icon-sm">🌡️</span>
+                            <div class="production-info">
+                                <span class="production-label-sm">Intensity</span>
+                                <span class="production-value-sm intensity" id="carbonIntensityNow">--</span>
+                            </div>
+                        </div>
                     </div>
-
-                    <button type="submit" class="btn btn-primary" id="optimizeBtn">
-                        <span class="btn-text">Get Forecast & Optimize</span>
-                        <span class="spinner" style="display: none;">⏳</span>
-                    </button>
-                </form>
-            </section>
+                </section>
+            </div>
 
             <!-- Results Section -->
             <section class="card results-section" id="results" style="display: none;">

@@ -6,10 +6,47 @@ from datetime import datetime, timedelta
 EMISSION_FACTORS = {
     "solar": 15,
     "wind": 11.5,  # Average of onshore/offshore
+    "gas": 490,  # Natural gas
+    "nuclear": 5,  # Nuclear
+    "coal": 820,  # Coal
+    "hydro": 24,  # Hydro
+    "storage": 0,  # Storage (no direct emissions)
+    "other": 200,  # Default for unknown sources
     # This is our inferred "other" category. In Belgium, this is a mix of
     # nuclear (~5 g/kWh) and gas (~490 g/kWh). We'll use a weighted average
     # based on a typical mix. Let's assume ~60% nuclear, 40% gas for this part.
     "thermal_and_nuclear": (5 * 0.6) + (490 * 0.4),  # Approx. 199 g/kWh
+}
+
+# Fuel type mapping for ods201 dataset (real-time production)
+FUEL_TYPE_MAP = {
+    "Wind Onshore": "wind",
+    "Wind Offshore": "wind",
+    "Solar": "solar",
+    "Nuclear": "nuclear",
+    "Fossil Gas": "gas",
+    "Natural Gas": "gas",
+    "Fossil Hard coal": "coal",
+    "Hydro Water Reservoir": "hydro",
+    "Hydro Run-of-river and poundage": "hydro",
+    "Water": "hydro",
+    "Energy Storage": "storage",
+    "Biofuels": "other",
+    "Waste": "other",
+    "Other": "other",
+    "Other Fossil Fuels": "other",
+}
+
+# Fuel code mapping for ods201 dataset
+FUEL_CODE_MAP = {
+    "SO": "solar",
+    "WI": "wind",
+    "NG": "gas",
+    "NU": "nuclear",
+    "WA": "hydro",
+    "CP": "coal",
+    "LF": "liquid_fuel",
+    "OTHER": "other",
 }
 
 
