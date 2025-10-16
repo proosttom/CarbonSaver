@@ -1,149 +1,67 @@
-# CarbonSaver - Energy Flexibility Market POC
+# CarbonSaver
 
-A proof-of-concept project demonstrating energy flexibility market link to carbon intensity. Using real data from the Elia Open Data Platform.
-
-## Overview
-
-This project fetches real-time grid data from Belgium's transmission system operator (Elia) and calculates carbon intensity forecasts to help optimize energy consumption during low-carbon periods.
+A web application that helps optimize energy consumption timing based on real-time carbon intensity data from Belgium's electricity grid.
 
 ## Features
 
-- Fetches day-ahead forecasts from Elia's Open Data API:
-  - Total load forecast (ods001)
-  - Wind power generation (ods032)
-  - Solar power generation (ods087)
-- Calculates carbon intensity (gCO₂eq/kWh) based on generation mix
-- Resamples 15-minute data to hourly forecasts
-- No API key required - uses Elia's open data platform
+- **Live Grid Production**: Real-time electricity generation by source (wind, solar, nuclear, gas, etc.) from ENTSO-E
+- **Carbon Intensity Forecasting**: Day-ahead forecasts from Elia's transmission data
+- **Load Optimization**: Find the best time windows to minimize carbon emissions
+- **Interactive Dashboard**: Visual charts and real-time data updates
+- **Emissions Calculator**: Compare standard vs. optimized schedules with savings in kg CO₂ and km driven equivalents
 
-## Setup
+## Quick Start
 
-### Prerequisites
-
-- Python 3.7+
-- Virtual environment (venv)
-
-### Installation
-
-1. Clone or download this repository
-
-2. Create and activate a virtual environment:
+1. **Clone and setup**:
 ```bash
+git clone <repository-url>
+cd CarbonSaver
 python3 -m venv .venv
-source .venv/bin/activate  # On macOS/Linux
-# or
-.venv\Scripts\activate  # On Windows
-```
-
-3. Install dependencies:
-```bash
+source .venv/bin/activate  # macOS/Linux
 pip install -r requirements.txt
 ```
 
-## Usage
+2. **Configure environment** (create `.env` file):
+```bash
+ENTSOE_API_TOKEN=your_token_here
+```
+Get your free token at: https://transparency.entsoe.eu/
 
-### Web Application (Recommended)
-
-Run the Flask web application for a full interactive experience:
-
+3. **Run the application**:
 ```bash
 python app.py
 ```
 
-Then open your browser to: **http://localhost:5001**
+4. **Open browser**: http://localhost:5001
 
-The web interface provides:
-- Interactive form for Default Load Profile
-- Real-time carbon intensity forecasting
-- Visual comparison of standard vs optimal schedules
-- Interactive charts with Chart.js
-- Emissions savings calculations with real-world equivalents
-
-### Interactive Load Optimizer (CLI)
-
-Run the interactive CLI for a guided terminal experience:
-
-```bash
-python cli.py
-```
-
-The CLI will ask you for:
-- Start hour of your standard schedule
-- Duration in hours
-- Total energy consumption in MWh
-
-Then it will show you the optimal schedule and emissions savings.
-
-### Basic Carbon Forecast
-
-Run the forecast script:
-
-```bash
-python elia_forecast.py
-```
-
-This will automatically find the most recent date with complete data available and display the carbon intensity for each hour. 
-
-**Note**: Due to publishing schedules, day-ahead forecasts may not always be available for tomorrow. The script will automatically search backwards from yesterday to find the most recent complete dataset (for POC demonstration purposes).
-
-You can also specify a specific date:
-
-```python
-from datetime import date
-from elia_forecast import build_carbon_intensity_forecast_from_elia
-
-# Get forecast for a specific date
-forecast = build_carbon_intensity_forecast_from_elia(use_date=date(2025, 10, 13))
-
-# The forecast DataFrame contains:
-# - total_load_mw: Total load in MW
-# - wind_mw: Wind generation in MW
-# - solar_mw: Solar generation in MW
-# - thermal_and_nuclear_mw: Other generation in MW
-# - total_emissions_gCO2eq_per_h: Total emissions per hour
-# - carbon_intensity_g_per_kWh: Carbon intensity in g/kWh
-
-# Example: Get the hour with minimum carbon intensity
-min_hour = forecast['carbon_intensity_g_per_kWh'].idxmin()
-print(f"Lowest carbon intensity at: {min_hour}")
-```
-
-### Interactive Load Optimizer (Recommended)
-
-Run the interactive CLI for a guided experience:
-
-```bash
-python cli.py
-```
-
-The CLI will ask you for:
-- Start hour of your standard schedule
-- Duration in hours
-- Total energy consumption in MWh
-
-Then it will show you the optimal schedule and emissions savings.
-
-## API Endpoints Used
-
-- **Load Forecast**: `https://opendata.elia.be/api/explore/v2.1/catalog/datasets/ods001/records`
-- **Wind Forecast**: `https://opendata.elia.be/api/explore/v2.1/catalog/datasets/ods032/records`
-- **Solar Forecast**: `https://opendata.elia.be/api/explore/v2.1/catalog/datasets/ods087/records`
-
-## Emission Factors
-
-The following emission factors are used (gCO₂eq/kWh):
-- Solar: 15
-- Wind: 11.5 (average of onshore/offshore)
-- Thermal & Nuclear: 199 (weighted mix of ~60% nuclear @ 5g/kWh, 40% gas @ 490g/kWh)
+See [QUICKSTART.md](QUICKSTART.md) and [ENTSOE_SETUP.md](ENTSOE_SETUP.md) for detailed setup instructions.
 
 ## API Endpoints
 
-The Flask application provides the following REST API endpoints:
+### `GET /api/realtime-production`
+Real-time electricity generation by fuel type from ENTSO-E.
+
+**Response**:
+```json
+{
+  "success": true,
+  "timestamp": "2025-10-16T14:30:00Z",
+  "production": {
+    "Wind Onshore": 1250.0,
+    "Solar": 890.5,
+    "Nuclear": 3800.0,
+    "Fossil Gas": 1200.0,
+    ...
+  },
+  "total_mw": 7500.0,
+  "carbon_intensity_g_per_kwh": 120.5
+}
+```
 
 ### `POST /api/optimize-forecast`
 Optimize load schedule based on carbon intensity forecast.
 
-**Request Body:**
+**Request**:
 ```json
 {
   "power_kw": 250,
@@ -152,20 +70,17 @@ Optimize load schedule based on carbon intensity forecast.
 }
 ```
 
-**Response:**
+**Response**:
 ```json
 {
   "success": true,
-  "date": "2025-10-13",
-  "standard_profile": { ... },
-  "optimal_profile": { ... },
+  "date": "2025-10-16",
   "savings": {
     "emissions_saved_kg": 38.40,
     "emissions_saved_pct": 26.5,
-    "time_shift_hours": 3,
-    "km_equivalent": 320
+    "time_shift_hours": 3
   },
-  "hourly_data": [ ... ]
+  "hourly_data": [...]
 }
 ```
 
@@ -175,106 +90,67 @@ Get carbon intensity forecast without optimization.
 ### `GET /api/health`
 Health check endpoint.
 
-## Technologies Used
+## Emission Factors
 
-### Backend
-- Python 3.7+
-- Flask (REST API)
-- pandas (data manipulation)
-- requests (API calls)
+Carbon intensity values (gCO₂eq/kWh):
+- **Nuclear**: 5 | **Wind**: 11.5 | **Solar**: 15 | **Hydro**: 24
+- **Biomass**: 230 | **Waste**: 200 | **Gas**: 490
 
-### Frontend
-- HTML5/CSS3
-- JavaScript (ES6+)
-- Chart.js (data visualization)
-
-### Data Sources
-
-## Load Profile Optimization
-
-### Programmatic Usage
-
-The project includes a load optimizer that compares a standard load profile with the optimal time slot for minimum carbon emissions:
-
-```bash
-python load_optimizer.py
-```
-
-### Example Output
-
-```
-STANDARD LOAD PROFILE: 7am-11am → 145.03 kg CO₂
-OPTIMAL LOAD PROFILE:  10am-2pm → 106.63 kg CO₂
-SAVINGS: 38.40 kg CO₂ (26.5% reduction)
-```
-
-### Custom Load Profiles
-
-You can customize the load profile in the script:
-
-```python
-from load_optimizer import compare_load_profiles
-
-results = compare_load_profiles(
-    standard_start_hour=7,    # 7am start time
-    duration_hours=4,         # 4 hours duration
-    load_mw=0.25             # 0.25 MW load (= 1 MWh total)
-)
-```
-
-The optimizer:
-- Calculates total emissions for your standard load profile
-- Searches all possible time slots to find the optimal window
-- Shows emissions savings and recommended time shift
-- Displays an hourly carbon intensity chart
+Hover over production types in the UI to see emission factors.
 
 ## Project Structure
 
 ```
 CarbonSaver/
-├── app.py                # Flask web application
-├── elia_forecast.py      # Carbon intensity forecast engine
-├── load_optimizer.py     # Load profile optimizer (programmatic)
-├── cli.py               # Interactive CLI interface
-├── requirements.txt      # Python dependencies
-├── README.md            # This file
-├── static/              # Web application assets
-│   ├── index.html       # Main HTML page
-│   ├── style.css        # Styles
-│   └── script.js        # Frontend JavaScript
-└── .venv/              # Virtual environment (gitignored)
+├── app.py                  # Flask API server
+├── elia_forecast.py        # Elia data fetching & carbon forecasting
+├── entsoe_data.py          # ENTSO-E real-time production data
+├── load_optimizer.py       # Load optimization algorithms
+├── cli.py                  # Command-line interface
+├── requirements.txt        # Python dependencies
+├── static/
+│   ├── index.html         # Web UI
+│   ├── style.css          # Styles
+│   └── script.js          # Frontend logic
+└── .env                   # Environment variables (not in git)
 ```
 
-## Integration
+## Technologies
 
-To integrate this into a Flask application:
+- **Backend**: Python, Flask, pandas, requests
+- **Frontend**: HTML5, CSS3, JavaScript (ES6+), Chart.js
+- **Data Sources**: [Elia Open Data](https://opendata.elia.be/), [ENTSO-E Transparency Platform](https://transparency.entsoe.eu/)
 
+## CLI Usage
+
+Interactive command-line interface:
+```bash
+python cli.py
+```
+
+Direct optimization:
 ```python
-from elia_forecast import build_carbon_intensity_forecast_from_elia
+from load_optimizer import compare_load_profiles
 
-# In your Flask endpoint
-@app.route('/optimize-forecast')
-def optimize_forecast():
-    forecast = build_carbon_intensity_forecast_from_elia()
-    if forecast is not None:
-        # Process and return the forecast
-        return jsonify(forecast.to_dict())
-    else:
-        return jsonify({"error": "Failed to fetch forecast"}), 500
+results = compare_load_profiles(
+    standard_start_hour=7,
+    duration_hours=4,
+    load_mw=0.25
+)
 ```
 
-## Data Sources
+## Deployment
 
-- [Elia Open Data Platform](https://opendata.elia.be/)
-- [API Documentation](https://opendata.elia.be/api/)
+- **AWS Elastic Beanstalk**: See [AWS_DEPLOYMENT.md](AWS_DEPLOYMENT.md)
+- **Production ready**: Includes Gunicorn, background data prefetching, and error handling
+
+## Documentation
+
+- [QUICKSTART.md](QUICKSTART.md) - Step-by-step setup guide
+- [ENTSOE_SETUP.md](ENTSOE_SETUP.md) - ENTSO-E API configuration
+- [USER_GUIDE.md](USER_GUIDE.md) - Application usage guide
+- [AWS_DEPLOYMENT.md](AWS_DEPLOYMENT.md) - Production deployment
 
 ## License
 
-This project uses data from Elia under the Elia Open Data Licence.
-
-## Notes
-
-- Data is updated every 15 minutes
-- Day-ahead forecasts are typically published at 6 PM the day before
-- The script automatically aggregates regional data for wind and solar
-- Handles pagination for datasets with more than 100 records
+This project uses data from Elia Open Data Platform and ENTSO-E Transparency Platform.
