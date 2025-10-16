@@ -185,15 +185,6 @@ def get_forecast():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/api/current-production", methods=["GET"])
-def get_current_production():
-    """Get current electricity production data.
-
-    Returns:
-        Response: JSON object containing current production data.
-    """
-
-
 @app.route("/api/optimize-forecast", methods=["POST"])
 def optimize_forecast():
     """Optimize load schedule based on carbon intensity forecast.
