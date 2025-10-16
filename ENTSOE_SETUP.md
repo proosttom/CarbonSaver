@@ -34,14 +34,3 @@ The CarbonSaver application uses the ENTSO-E Transparency Platform API to fetch 
    ```bash
    python app.py
    ```
-
-## Fallback Behavior
-
-If no ENTSO-E token is provided, the application will automatically fall back to using the Elia Open Data API, which doesn't require authentication but may have different data formats.
-
-## Data Coverage
-
-- **ENTSO-E**: Pan-European data with standardized formats
-- **Elia**: Belgium-specific data with detailed breakdowns
-
-Both sources provide real-time generation data by fuel type for carbon intensity calculations.

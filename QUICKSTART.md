@@ -60,9 +60,6 @@ You should now see real-time data in the "🔌 Live Grid Production" dashboard!
 - **Solution:** Check that your token is valid at https://transparency.entsoe.eu/
 - **Try:** Regenerate the token if it's expired
 
-**Problem:** Server shows "Tip: There are .env files present. Install python-dotenv"
-- **Solution:** Run: `/Users/proost/Coding/CarbonSaver/.venv/bin/pip install python-dotenv`
-
 ---
 
 ## ℹ️ More Information
